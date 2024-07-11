@@ -1,6 +1,8 @@
 common:
     lid_topic:  "/livox/lidar"
+    # lid_topic:  "/livox/lidar_192_168_1_128"
     imu_topic:  "/livox/imu"
+    # imu_topic:  "/livox/imu_192_168_1_128"
 
 preprocess:
     lidar_type: 1                # Livox Avia LiDAR

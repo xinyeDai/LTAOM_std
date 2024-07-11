@@ -2734,8 +2734,8 @@ double geometric_icp(const ConfigSetting &config_setting,
   }
   kd_tree->setInputCloud(input_cloud);
   Eigen::Quaterniond q(rot.cast<double>());
-  ceres::LocalParameterization *q_parameterization =
-      new ceres::EigenQuaternionParameterization();
+  ceres::Manifold *q_parameterization =
+      new ceres::EigenQuaternionManifold();
   ceres::Problem problem;
   ceres::LossFunction *loss_function = new ceres::HuberLoss(0.1);
   double para_q[4] = {q.x(), q.y(), q.z(), q.w()};

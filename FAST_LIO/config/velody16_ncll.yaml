@@ -1,6 +1,8 @@
 common:
+    # lid_topic:  "/points_raw"
+    # imu_topic:  "/imu_raw"
     lid_topic:  "/points_raw"
-    imu_topic:  "/imu_raw"
+    imu_topic:  "/rtk_imu"
     
 preprocess:
     lidar_type: 2                # VLP-16 LiDAR

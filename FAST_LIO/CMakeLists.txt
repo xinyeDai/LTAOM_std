@@ -61,7 +61,8 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Eigen3 REQUIRED)
-find_package(PCL 1.8 REQUIRED)
+find_package(PCL REQUIRED)
+find_package(rs_driver REQUIRED)
 
 message(Eigen: ${EIGEN3_INCLUDE_DIR})
 
@@ -70,6 +71,7 @@ include_directories(
   ${EIGEN3_INCLUDE_DIR}
   ${PCL_INCLUDE_DIRS}
   ${PYTHON_INCLUDE_DIRS}
+  ${rs_driver_INCLUDE_DIRS}
   include
   src)
 
@@ -118,3 +120,6 @@ endif()
 add_executable(map_eva map_eva/mapconsistency_eva.cpp)
 target_link_libraries(map_eva ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+add_executable(rs_velodyne rs_preprocess/rs_to_velodyne.cpp)
+add_dependencies(rs_velodyne ${catkin_EXPORTED_TARGETS})
+target_link_libraries(rs_velodyne ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES} ${rs_driver_LIBRARIES})

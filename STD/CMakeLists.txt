@@ -29,6 +29,7 @@ find_package(PCL REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Threads)
 find_package(Ceres REQUIRED)
+find_package(Qt5 COMPONENTS Widgets)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -39,9 +40,9 @@ catkin_package(
  CATKIN_DEPENDS roscpp rospy std_msgs
 )
 
-set(LIB_OPENCV_IMGPROC_DIR /home/zuhaozou/tbb)
+set(LIB_OPENCV_IMGPROC_DIR /usr/local/tbb-2019_U9/lib/)
 add_library(libtbb SHARED IMPORTED)
-set_target_properties(libtbb PROPERTIES IMPORTED_LOCATION ${LIB_OPENCV_IMGPROC_DIR}/build/my_tbb_build_release/libtbb.so.2)
+set_target_properties(libtbb PROPERTIES IMPORTED_LOCATION ${LIB_OPENCV_IMGPROC_DIR}/linux_intel64_gcc_cc11.4.0_libc2.31_kernel5.15.0_release/libtbb.so.2)
 
 include_directories(
   include
