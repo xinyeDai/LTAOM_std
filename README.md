@@ -15,7 +15,7 @@ Our demo video is available on https://youtu.be/DVwppEKlKps .
 
 ## 2. Tested Environment
 ### 2.0 **Ubuntu**
-Our operation system is Ubuntu 18.
+Our operation system is Ubuntu 20.
 
 ### 2.1 **ROS**
 Following this [ROS Installation](http://wiki.ros.org/ROS/Installation) to install ROS and its additional pacakge. Our ROS version is Melodic.
