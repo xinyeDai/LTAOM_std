@@ -160,7 +160,7 @@ float  res_last[100000] = {0.0};
 double total_residual ;
 uint64_t curr_Mea_lidarbegtime_NS = 0;
 
-//#define save_for_mapconsistency_eva  //uncomment to generate dense scan poses and undistorted scans
+#define save_for_mapconsistency_eva  //uncomment to generate dense scan poses and undistorted scans
 #ifdef save_for_mapconsistency_eva
 #include <rosbag/bag.h>
 int cnt_scan = 0;

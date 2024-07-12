@@ -990,7 +990,9 @@ if (multisession_mode == 2)
     bool save_one_time = false;
     nh.getParam("/save_prior_info", save_one_time);
     if(save_one_time){
+      printf("2222222222222222222222222222222\n");
       std::string des_name = save_directory + "map_prior/descriptors.pcd";
+      printf(" multisession_mode = 2, success to get save_prior_info\n");
       pcl::io::savePCDFileBinary(des_name, *des_to_store);
 
       if (!history_plane_list.empty()){

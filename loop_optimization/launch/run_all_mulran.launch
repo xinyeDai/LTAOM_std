@@ -1,6 +1,6 @@
 <launch>
         <param name="multisession_mode" type="int" value="2"/>
-        <param name="SaveDir" type="string" value="/home/zuhaozou/ws_LTAOM/logs/"/>
+        <param name="SaveDir" type="string" value="/home/xyd/Project/LTAOM_ws/logs/"/>
 
         <node pkg="nodelet" type="nodelet" args="manager" name="sample_nodelet_manager" output="screen">
             <!--param name="num_worker_threads" value="32" /-->

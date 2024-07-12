@@ -1627,8 +1627,10 @@ void pubAndSaveGloablMap(bool savemap = true)
     sensor_msgs::PointCloud2 laserCloudMapPGOMsg;
     pcl::toROSMsg(fullMapToSave, laserCloudMapPGOMsg);
     laserCloudMapPGOMsg.header.frame_id = "/camera_init";
-    if (pubAndSaveGloablMapAftPGO.getNumSubscribers() != 0)
+    if (pubAndSaveGloablMapAftPGO.getNumSubscribers() != 0) {
+        printf("*********************************Publishing corrected map.\n");
         pubAndSaveGloablMapAftPGO.publish(laserCloudMapPGOMsg);
+    }
     ros::spinOnce();
     loop_corr_counter_last = loop_corr_counter;
 

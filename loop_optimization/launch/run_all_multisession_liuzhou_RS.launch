@@ -8,7 +8,7 @@
             <!--param name="num_worker_threads" value="32" /-->
         </node>
 
-        <rosparam command="load" file="$(find fast_lio)/config/ouster64_mulran.yaml" />
+        <rosparam command="load" file="$(find fast_lio)/config/liuzhou/RSLiDAR.yaml" />
 
         <node pkg="nodelet" type="nodelet" args="load fast_lio/fastlio_plugin sample_nodelet_manager"
             name="fastlio_plugin_loader" output="screen" >
