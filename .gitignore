@@ -1,3 +1,7 @@
 .vscode/c_cpp_properties.json
 .vscode/settings.json
 FAST_LIO/Log/*
+FAST_LIO/Log/imu.txt
+FAST_LIO/Log/mat_out.txt
+FAST_LIO/Log/mat_pre.txt
+FAST_LIO/Log/pos_log.txt

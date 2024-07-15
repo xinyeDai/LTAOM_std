@@ -1,7 +1,7 @@
 <launch>
         <!-- multisession_mode = 1 => you can load cloud for current session -->
         <!-- multisession_mode = 2 => you can save cloud for future  session -->
-        <param name="multisession_mode" type="int" value="1"/>
+        <param name="multisession_mode" type="int" value="2"/>
         <param name="SaveDir" type="string" value="/home/xyd/Project/LTAOM_ws/logs/"/>
 
         <node pkg="nodelet" type="nodelet" args="manager" name="sample_nodelet_manager" output="screen">
@@ -12,6 +12,9 @@
 
         <node pkg="nodelet" type="nodelet" args="load fast_lio/fastlio_plugin sample_nodelet_manager"
             name="fastlio_plugin_loader" output="screen" >
+        </node>
+        <node pkg="nodelet" type="nodelet" args="load fast_lio/rs_velodyne sample_nodelet_manager"
+            name="rs_to_velodyne" output="screen" >
         </node>
 
         <param name="feature_extract_enable" type="bool" value="0"/>
