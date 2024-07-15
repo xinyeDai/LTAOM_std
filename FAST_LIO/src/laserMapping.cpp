@@ -1350,7 +1350,7 @@ void publish_path(const ros::Publisher pubPath)
 
 void h_share_model(state_ikfom &s, esekfom::dyn_share_datastruct<double> &ekfom_data)
 {
-    double match_start = omp_get_wtime();
+    double match_start = omp_get_wtime();  // omp_get_wtime() 获取当前时间，记录匹配开始时间
     laserCloudOri->clear();
     corr_normvect->clear();
     total_residual = 0.0;
@@ -1360,7 +1360,7 @@ void h_share_model(state_ikfom &s, esekfom::dyn_share_datastruct<double> &ekfom_
         omp_set_num_threads(MP_PROC_NUM);
         #pragma omp parallel for
     #endif
-    for (int i = 0; i < feats_down_size; i++)
+    for (int i = 0; i < feats_down_size; i++)  // 遍历所有的特征点
     {
         PointType &point_body  = feats_down_body->points[i];
         PointType &point_world = feats_down_world->points[i];
@@ -1368,6 +1368,7 @@ void h_share_model(state_ikfom &s, esekfom::dyn_share_datastruct<double> &ekfom_
         /* transform to world frame */
         //pointBodyToWorld_ikfom(&point_body, &point_world, s);
         V3D p_body(point_body.x, point_body.y, point_body.z);
+        // 把Lidar坐标系的点先转到IMU坐标系，再根据前向传播估计的位姿x，转到世界坐标系
         V3D p_global(s.rot * (s.offset_R_L_I*p_body + s.offset_T_L_I) + s.pos);
         point_world.x = p_global(0);
         point_world.y = p_global(1);
@@ -1375,21 +1376,24 @@ void h_share_model(state_ikfom &s, esekfom::dyn_share_datastruct<double> &ekfom_
         point_world.intensity = point_body.intensity;
 
         vector<float> pointSearchSqDis(NUM_MATCH_POINTS);
-        auto &points_near = Nearest_Points[i];
+        auto &points_near = Nearest_Points[i];  // Nearest_Points[i]打印出来发现是按照离point_world距离，从小到大的顺序的vector
 
         if (ekfom_data.converge)
         {
             /** Find the closest surfaces in the map **/
             ikdtree_ptr->Nearest_Search(point_world, NUM_MATCH_POINTS, points_near, pointSearchSqDis);
 
-            if (points_near.size() < NUM_MATCH_POINTS)
-            {
-                point_selected_surf[i] = false;
-            }
-            else
-            {
-                point_selected_surf[i] = pointSearchSqDis[NUM_MATCH_POINTS - 1] > 5 ? false : true;
-            }
+            // if (points_near.size() < NUM_MATCH_POINTS)
+            // {
+            //     point_selected_surf[i] = false;
+            // }
+            // else
+            // {
+            //     point_selected_surf[i] = pointSearchSqDis[NUM_MATCH_POINTS - 1] > 5 ? false : true;
+            // }
+            // 判断是否是有效匹配点，与loam系列类似，要求特征点最近邻的地图点数量>阈值，距离<阈值  满足条件的才置为true
+            point_selected_surf[i] = points_near.size() < NUM_MATCH_POINTS ? false : pointSearchSqDis[NUM_MATCH_POINTS - 1] > 5 ? false
+																																: true;
         }
 //        fout_dbg << " ( " << i << "," << point_body.x << " " << point_body.y << "|" << point_world.x << " " << point_world.y << " ) " << std::endl;
 
@@ -1397,19 +1401,18 @@ void h_share_model(state_ikfom &s, esekfom::dyn_share_datastruct<double> &ekfom_
 
         if (!point_selected_surf[i]) continue;
 
-
-        VF(4) pabcd;
-        point_selected_surf[i] = false;
+        VF(4) pabcd;  // 平面点信息
+        point_selected_surf[i] = false;  // 将该点设置为无效点，用来判断是否满足条件
+        // 拟合平面方程ax+by+cz+d=0并求解点到平面距离
         if (esti_plane(pabcd, points_near, 0.1f)) //(planeValid)
         {
+            float pd2 = pabcd(0) * point_world.x + pabcd(1) * point_world.y + pabcd(2) * point_world.z + pabcd(3);  // 当前点到平面的距离
+            float s = 1 - 0.9 * fabs(pd2) / sqrt(p_body.norm());  // 如果残差大于经验阈值，则认为该点是有效点  简言之，距离原点越近的lidar点  要求点到平面的距离越苛刻 
 
-            float pd2 = pabcd(0) * point_world.x + pabcd(1) * point_world.y + pabcd(2) * point_world.z + pabcd(3);
-            float s = 1 - 0.9 * fabs(pd2) / sqrt(p_body.norm());
-
-            if (s > 0.9)
+            if (s > 0.9)  // 如果残差大于阈值，则认为该点是有效点
             {
                 point_selected_surf[i] = true;
-                normvec->points[i].x = pabcd(0);
+                normvec->points[i].x = pabcd(0);  // 存储平面的单位法向量  以及当前点到平面距离
                 normvec->points[i].y = pabcd(1);
                 normvec->points[i].z = pabcd(2);
                 normvec->points[i].intensity = pd2;
@@ -1418,24 +1421,33 @@ void h_share_model(state_ikfom &s, esekfom::dyn_share_datastruct<double> &ekfom_
         }
     }
 
-    effct_feat_num = 0;
+    effct_feat_num = 0;  // 有效特征点的数量 
 
-    for (int i = 0; i < feats_down_size; i++)
-    {
-        if (point_selected_surf[i])
+    for (int i = 0; i < feats_down_size; i++) {
+        if (point_selected_surf[i])  // 对于满足要求的点
         {
-            laserCloudOri->points[effct_feat_num] = feats_down_body->points[i];
-            corr_normvect->points[effct_feat_num] = normvec->points[i];
-            total_residual += res_last[i];
+            laserCloudOri->points[effct_feat_num] = feats_down_body->points[i];  // 把这些点重新存到laserCloudOri中
+            corr_normvect->points[effct_feat_num] = normvec->points[i];  // 存储这些点对应的法向量和到平面的距离 
+            total_residual += res_last[i];  // 计算总体残差
             effct_feat_num ++;
         }
     }
-    res_mean_last = total_residual / effct_feat_num;
-    match_time  += omp_get_wtime() - match_start;
+
+    if (effct_feat_num < 1) {
+        ekfom_data.valid = false;
+        ROS_WARN("No Effective Points! \n");
+        return;
+    }
+
+    res_mean_last = total_residual / effct_feat_num;  // 总的残差除以有效特征点数量，得到平均残差
+    match_time  += omp_get_wtime() - match_start;  // 计算匹配时间
+
     double solve_start_  = omp_get_wtime();
+    // 将平均残差和KF的位姿信息输出到文件中
     fout_dbg << "scan to map update avg res_mean_last: " << res_mean_last << " KF pose: " << s.pos.transpose() << std::endl;
-    /*** Computation of Measuremnt Jacobian matrix H and measurents vector ***/
-    //MatrixXd H(effct_feat_num, 23);
+
+    /*** Computation of Measuremnt Jacobian matrix H and measurents vector ***/	// 雅可比矩阵H和残差向量的计算
+    // MatrixXd H(effct_feat_num, 23);
     ekfom_data.h_x = MatrixXd::Zero(effct_feat_num, 12); //23
     ekfom_data.h.resize(effct_feat_num); // = VectorXd::Zero(effct_feat_num);
     //VectorXd meas_vec(effct_feat_num);
@@ -1465,7 +1477,7 @@ void h_share_model(state_ikfom &s, esekfom::dyn_share_datastruct<double> &ekfom_
 
         /*** Measuremnt: distance to the closest surface/corner ***/
         //meas_vec(i) = - norm_p.intensity;
-        ekfom_data.h(i) = -norm_p.intensity;
+        ekfom_data.h(i) = -norm_p.intensity;  // 残差向量（残差：点到平面的距离）
     }
     //ekfom_data.h_x =H;
     solve_time += omp_get_wtime() - solve_start_;
@@ -1621,8 +1633,8 @@ int main(int argc, char** argv)
     downSizeFilterMap.setLeafSize(filter_size_map_min, filter_size_map_min, filter_size_map_min);
 
     shared_ptr<ImuProcess> p_imu(new ImuProcess());
-    // p_imu->set_extrinsic(V3D(0.04165, 0.02326, -0.0284));   //avia
-    // p_imu->set_extrinsic(V3D(0.05512, 0.02226, -0.0297));   //horizon
+    // p_imu->set_extrinsic(V3D(0.04165, 0.02326, -0.0284));   // avia
+    // p_imu->set_extrinsic(V3D(0.05512, 0.02226, -0.0297));   // horizon
     Lidar_T_wrt_IMU<<VEC_FROM_ARRAY(extrinT);
     Lidar_R_wrt_IMU<<MAT_FROM_ARRAY(extrinR);
     p_imu->set_extrinsic(Lidar_T_wrt_IMU, Lidar_R_wrt_IMU);
