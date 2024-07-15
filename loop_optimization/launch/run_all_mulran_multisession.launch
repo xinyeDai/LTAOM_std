@@ -1,7 +1,7 @@
 <launch>
         <!-- multisession_mode = 1 => you can load cloud for current session -->
         <!-- multisession_mode = 2 => you can save cloud for future  session -->
-        <param name="multisession_mode" type="int" value="1"/>
+        <param name="multisession_mode" type="int" value="2"/>
         <param name="SaveDir" type="string" value="/home/xyd/Project/LTAOM_ws/logs/"/>
 
         <node pkg="nodelet" type="nodelet" args="manager" name="sample_nodelet_manager" output="screen">

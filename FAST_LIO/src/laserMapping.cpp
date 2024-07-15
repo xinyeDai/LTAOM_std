@@ -1556,6 +1556,7 @@ void load_prior_map_and_info(PointCloudXYZI::Ptr &priormap)
 }
 
 
+// nodelet方式的ros节点
 #ifdef as_node
 int mainLIOFunction()
 {

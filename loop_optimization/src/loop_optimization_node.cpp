@@ -455,27 +455,27 @@ void pubLoopClosureVisualization(const int prev_idx, const int curr_idx)
     lines_.color.a = 1.0f;
     geometry_msgs::Point point_a, point_b;
 
-    if (multisession_mode == 1)
-    {
-        bool on_prior = prev_idx < 0;
-        point_a.x = on_prior ? keyframes_prior_[wrap4Containner(prev_idx)].KeyPoseOpt.x : keyframes_[prev_idx].KeyPose.x;
-        point_a.y = on_prior ? keyframes_prior_[wrap4Containner(prev_idx)].KeyPoseOpt.y : keyframes_[prev_idx].KeyPose.y;
-        point_a.z = on_prior ? keyframes_prior_[wrap4Containner(prev_idx)].KeyPoseOpt.z : keyframes_[prev_idx].KeyPose.z;
+if (multisession_mode == 1)
+{
+    bool on_prior = prev_idx < 0;
+    point_a.x = on_prior ? keyframes_prior_[wrap4Containner(prev_idx)].KeyPoseOpt.x : keyframes_[prev_idx].KeyPose.x;
+    point_a.y = on_prior ? keyframes_prior_[wrap4Containner(prev_idx)].KeyPoseOpt.y : keyframes_[prev_idx].KeyPose.y;
+    point_a.z = on_prior ? keyframes_prior_[wrap4Containner(prev_idx)].KeyPoseOpt.z : keyframes_[prev_idx].KeyPose.z;
 
-        point_b.x = keyframes_[curr_idx].KeyPose.x;
-        point_b.y = keyframes_[curr_idx].KeyPose.y;
-        point_b.z = keyframes_[curr_idx].KeyPose.z;
-    }
-    else
-    {
-        point_a.x = keyframes_[prev_idx].KeyPose.x;
-        point_a.y = keyframes_[prev_idx].KeyPose.y;
-        point_a.z = keyframes_[prev_idx].KeyPose.z;
+    point_b.x = keyframes_[curr_idx].KeyPose.x;
+    point_b.y = keyframes_[curr_idx].KeyPose.y;
+    point_b.z = keyframes_[curr_idx].KeyPose.z;
+}
+else
+{
+    point_a.x = keyframes_[prev_idx].KeyPose.x;
+    point_a.y = keyframes_[prev_idx].KeyPose.y;
+    point_a.z = keyframes_[prev_idx].KeyPose.z;
 
-        point_b.x = keyframes_[curr_idx].KeyPose.x;
-        point_b.y = keyframes_[curr_idx].KeyPose.y;
-        point_b.z = keyframes_[curr_idx].KeyPose.z;
-    }
+    point_b.x = keyframes_[curr_idx].KeyPose.x;
+    point_b.y = keyframes_[curr_idx].KeyPose.y;
+    point_b.z = keyframes_[curr_idx].KeyPose.z;
+}
 
     lines_.points.push_back(point_a);
     lines_.points.push_back(point_b);
@@ -721,31 +721,31 @@ bool checkResiduals(const float res_thr){
         gtsam::Pose3 T_prev;
 
 /** *************multisession_mode reset to 1 ***************************** */
-        if (multisession_mode == 1)
-        {
-            if (key1 >= 50000)                                                       // We use key > 50000 for LC factor on prior
-                T_prev = Pose6DToGTSPose(keyframes_prior_[key1 - 50001].KeyPoseOpt); // "key1-50001" is the conversion to containner index
-            else
-                T_prev = Pose6DToGTSPose(keyframes_[key1].KeyPoseOpt);
-        }
+if (multisession_mode == 1)
+{
+        if (key1 >= 50000)                                                       // We use key > 50000 for LC factor on prior
+            T_prev = Pose6DToGTSPose(keyframes_prior_[key1 - 50001].KeyPoseOpt); // "key1-50001" is the conversion to containner index
         else
-        {
             T_prev = Pose6DToGTSPose(keyframes_[key1].KeyPoseOpt);
-        }
+}
+else
+{
+        T_prev = Pose6DToGTSPose(keyframes_[key1].KeyPoseOpt);
+}
 
         gtsam::Pose3 T_curr = Pose6DToGTSPose(keyframes_[key2].KeyPoseOpt);
         const gtsam::Pose3 _2T1_ = T_curr.between(T_prev);
         VOXEL_LOC position;
         
 /** *************multisession_mode reset to 1 ***************************** */
-        if (multisession_mode == 1)
-        {
-            position.x = int(key1 >= 50000 ? -(key1 - 50000) : key1), position.y = (int)(key2), position.z = (int)(0);
-        }
-        else
-        {
-            position.x = (int)(key1), position.y = (int)(key2), position.z = (int)(0);
-        }
+if (multisession_mode == 1)
+{
+        position.x = int(key1 >= 50000 ? -(key1 - 50000) : key1), position.y = (int)(key2), position.z = (int)(0);
+}
+else
+{   
+        position.x = (int)(key1), position.y = (int)(key2), position.z = (int)(0);
+}
 
         if (tmp.find(position) != tmp.end()) continue;
         if (cornerpairs_uomap.find(position) == cornerpairs_uomap.end()) continue;
@@ -894,25 +894,13 @@ void optimize()
         //        printGraph(complete_graph);
 
 /** *************multisession_mode reset to 1 ***************************** */
-        if (multisession_mode == 1)
+if (multisession_mode == 1)
+{
+        if (relocal_status == 0)
         {
-            if (relocal_status == 0)
-            {
-                relocal_status = -1;
-                gts_graph_ = gts_graph_recover_;
-                gts_init_vals_ = gts_init_vals_recover_;
-            }
-            else
-            {
-                isam_->update(gts_graph_recover_, gts_init_vals_);
-                gts_cur_vals_ = isam_->calculateEstimate();
-                correctPosesAndSaveTxt();
-
-                gts_graph_.resize(0);
-                gts_graph_recover_.resize(0);
-                gts_init_vals_.clear();
-                gts_init_vals_recover_.clear();
-            }
+            relocal_status = -1;
+            gts_graph_ = gts_graph_recover_;
+            gts_init_vals_ = gts_init_vals_recover_;
         }
         else
         {
@@ -925,6 +913,18 @@ void optimize()
             gts_init_vals_.clear();
             gts_init_vals_recover_.clear();
         }
+}
+else
+{
+        isam_->update(gts_graph_recover_, gts_init_vals_);
+        gts_cur_vals_ = isam_->calculateEstimate();
+        correctPosesAndSaveTxt();
+
+        gts_graph_.resize(0);
+        gts_graph_recover_.resize(0);
+        gts_init_vals_.clear();
+        gts_init_vals_recover_.clear();
+}
 
         if (lc_pose_uomap.size() == 2) // this case is that first two lc not consistent
             lc_pose_uomap.clear();
@@ -962,7 +962,7 @@ void optimize()
 
         VOXEL_LOC position;
         position.x = (int)(lc_prev_idx), position.y = (int)(lc_curr_idx), position.z = (int)(0);
-        
+
         auto icp_tranform = GTSPoseToPose6D(lc_pose_uomap[position]);
         position.x = (int)(last_lc_prev_idx),position.y = (int)(last_lc_curr_idx),position.z = (int)(0);
         auto icp_tranform_last = GTSPoseToPose6D(lc_pose_uomap[position]);
@@ -1290,6 +1290,7 @@ void main_pgo()
 
         mtx_pgo_.lock();
         auto start = std::chrono::system_clock::now();
+        // Loop clousre factor
         if (addOdomFactor())   // when a new key frame appears (addOdomFactor == true), do some thing
         {
             while (!loopclosure_buf_.empty() && !just_loop_closure)
